@@ -34,9 +34,13 @@
 #include "errormessage.h"
 #include "printf.h"
 #include "stm32scheduler.h"
+#include "pwmgeneration.h"
 
 static Stm32Scheduler* scheduler;
 static Can* can;
+static PwmGeneration* pwm;
+
+HWREV hwRev = HW_PRIUS;
 
 //sample 100ms task
 static void Ms100Task(void)
@@ -64,18 +68,26 @@ static void Ms100Task(void)
 //sample 10 ms task
 static void Ms10Task(void)
 {
-   //Set timestamp of error message
-   ErrorMessage::SetTime(rtc_get_counter_val());
-
-   if (DigIo::test_in.Get())
+   if (Param::GetInt(Param::start) == MOD_RUN)
    {
-      //Post a test error message when our test input is high
-      ErrorMessage::Post(ERR_TESTERROR);
-   }
+      if (Param::GetInt(Param::opmode) != MOD_RUN)
+      {
+         uint32_t banks[2] = { GPIOA, GPIOB };
+         uint16_t pins[2] = { GPIO8 | GPIO9 | GPIO10, GPIO13 | GPIO14 | GPIO15 };
 
-   //AnaIn::<name>.Get() returns the filtered ADC value
-   //Param::SetInt() sets an integer value.
-   Param::SetInt(Param::testain, AnaIn::test.Get());
+         pwm->SetPolarity(false, banks, pins, 2);
+         pwm->SetPwmDigits(MIN_PWM_DIGITS + Param::GetInt(Param::pwmfrq));
+         pwm->Start();
+         DigIo::dcsw_out.Set();
+         Param::SetInt(Param::opmode, MOD_RUN);
+      }
+   }
+   else if (Param::GetInt(Param::start) == MOD_OFF)
+   {
+      Param::SetInt(Param::opmode, MOD_OFF);
+      DigIo::dcsw_out.Clear();
+      pwm->Stop();
+   }
 
    //If we chose to send CAN messages every 10 ms, do this here.
    if (Param::GetInt(Param::canperiod) == CAN_PERIOD_10MS)
@@ -88,6 +100,8 @@ extern void parm_Change(Param::PARAM_NUM paramNum)
    switch (paramNum)
    {
    default:
+      pwm->SetUdc(Param::Get(Param::udcspnt));
+      pwm->ConfigureUdcController(Param::GetInt(Param::udckp), Param::GetInt(Param::udcki));
       //Handle general parameter changes here. Add paramNum labels for handling specific parameters
       break;
    }
@@ -98,6 +112,27 @@ extern void parm_Change(Param::PARAM_NUM paramNum)
 extern "C" void tim2_isr(void)
 {
    scheduler->Run();
+}
+
+extern "C" void tim1_brk_isr(void)
+{
+   timer_disable_irq(TIM1, TIM_DIER_BIE);
+   pwm->Stop();
+   Param::SetInt(Param::opmode, MOD_OFF);
+}
+
+extern "C" void tim1_up_isr(void)
+{
+   s32fp udcgain = Param::Get(Param::udcgain);
+   int udcofs = Param::GetInt(Param::udcofs);
+   s32fp udc = FP_DIV(FP_FROMINT(AnaIn::udc.Get() - udcofs), udcgain);
+
+   /* Clear interrupt pending flag */
+   timer_clear_flag(TIM1, TIM_SR_UIF);
+   int dc = pwm->Run(udc);
+
+   Param::SetFlt(Param::udc, udc);
+   Param::SetInt(Param::boosteramp, dc);
 }
 
 extern "C" int main(void)
@@ -114,6 +149,10 @@ extern "C" int main(void)
    nvic_setup(); //Set up some interrupts
    term_Init(); //Initialize terminal
    parm_load(); //Load stored parameters
+
+   PwmGeneration p(TIM1);
+   pwm = &p;
+
    parm_Change(Param::PARAM_LAST); //Call callback one for general parameter propagation
 
    Stm32Scheduler s(TIM2); //We never exit main so it's ok to put it on stack
@@ -122,6 +161,7 @@ extern "C" int main(void)
    Can c(CAN1, (Can::baudrates)Param::GetInt(Param::canspeed));
    //store a pointer for easier access
    can = &c;
+
 
    //Up to four tasks can be added to each timer scheduler
    //AddTask takes a function pointer and a calling interval in milliseconds.

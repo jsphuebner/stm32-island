@@ -1,7 +1,7 @@
 /*
- * This file is part of the stm32-template project.
+ * This file is part of the stm32-island project.
  *
- * Copyright (C) 2020 Johannes Huebner <dev@johanneshuebner.com>
+ * Copyright (C) 2021 Johannes Huebner <dev@johanneshuebner.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,27 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* This file contains all parameters used in your project
- * See main.cpp on how to access them.
- * If a parameters unit is of format "0=Choice, 1=AnotherChoice" etc.
- * It will be displayed as a dropdown in the web interface
- * If it is a spot value, the decimal is translated to the name, i.e. 0 becomes "Choice"
- * If the enum values are powers of two, they will be displayed as flags, example
- * "0=None, 1=Flag1, 2=Flag2, 4=Flag3, 8=Flag4" and the value is 5.
- * It means that Flag1 and Flag3 are active -> Display "Flag1 | Flag3"
- *
- * Every parameter/value has a unique ID that must never change. This is used when loading parameters
- * from flash, so even across firmware versions saved parameters in flash can always be mapped
- * back to our list here. If a new value is added, it will receive its default value
- * because it will not be found in flash.
- * The unique ID is also used in the CAN module, to be able to recover the CAN map
- * no matter which firmware version saved it to flash.
- * Make sure to keep track of your ids and avoid duplicates. Also don't re-assign
- * IDs from deleted parameters because you will end up loading some random value
- * into your new parameter!
- * IDs are 16 bit, so 65535 is the maximum
- */
-
  //Define a version string of your firmware here
 #define VER 1.00.R
 
@@ -46,26 +25,44 @@
    2. Temporary parameters (id = 0)
    3. Display values
  */
-//Next param id (increase when adding new parameter!): 3
+//Next param id (increase when adding new parameter!): 7
 //Next value Id: 2005
-/*              category     name         unit       min     max     default id */
+/*              category      name         unit       min     max     default id */
 #define PARAM_LIST \
-    PARAM_ENTRY(CAT_COMM,    canspeed,    CANSPEEDS, 0,      3,      1,      1   ) \
-    PARAM_ENTRY(CAT_COMM,    canperiod,   CANPERIODS,0,      1,      0,      2   ) \
-    PARAM_ENTRY(CAT_TEST,    testparam,   "Hz",      -100,   1000,   0,      0   ) \
-    VALUE_ENTRY(opmode,      OPMODES, 2000 ) \
-    VALUE_ENTRY(version,     VERSTR,  2001 ) \
-    VALUE_ENTRY(lasterr,     errorListString,  2002 ) \
-    VALUE_ENTRY(testain,     "dig",   2003 ) \
-    VALUE_ENTRY(cpuload,     "%",     2004 )
+    PARAM_ENTRY(CAT_INVERTER, pwmfrq,      PWMFRQS,   0,      2,      1,      13  ) \
+    PARAM_ENTRY(CAT_INVERTER, pwmpol,      PWMPOLS,   0,      1,      0,      52  ) \
+    PARAM_ENTRY(CAT_INVERTER, deadtime,    "dig",     0,      255,    63,     14  ) \
+    PARAM_ENTRY(CAT_INVERTER, ocurlim,     "A",       -65536, 65536,  100,    22  ) \
+    PARAM_ENTRY(CAT_INVERTER, il1gain,     "dig/A",   -100,   100,    4.7,    27  ) \
+    PARAM_ENTRY(CAT_INVERTER, il2gain,     "dig/A",   -100,   100,    4.7,    28  ) \
+    PARAM_ENTRY(CAT_INVERTER, udcgain,     "dig/V",   0,      4095,   6.175,  29  ) \
+    PARAM_ENTRY(CAT_INVERTER, udcofs,      "dig",     0,      4095,   0,      77  ) \
+    PARAM_ENTRY(CAT_INVERTER, udclim,      "V",       0,      1000,   540,    48  ) \
+    PARAM_ENTRY(CAT_OPERATION,start,       OPMODES,   0,      1,      0,      0   ) \
+    PARAM_ENTRY(CAT_OPERATION,udcspnt,     "V",       0,      600,    0,      3   ) \
+    PARAM_ENTRY(CAT_OPERATION,udckp,       "",        0,      10000,  10,     4   ) \
+    PARAM_ENTRY(CAT_OPERATION,udcki,       "",        0,      10000,  10,     5   ) \
+    PARAM_ENTRY(CAT_OPERATION,minpwm,      "%",       0,      100,    0,      6   ) \
+    PARAM_ENTRY(CAT_COMM,     canspeed,    CANSPEEDS, 0,      3,      1,      1   ) \
+    PARAM_ENTRY(CAT_COMM,     canperiod,   CANPERIODS,0,      1,      0,      2   ) \
+    VALUE_ENTRY(opmode,       OPMODES, 2000 ) \
+    VALUE_ENTRY(udc,          "V",   2003 ) \
+    VALUE_ENTRY(version,      VERSTR,  2001 ) \
+    VALUE_ENTRY(lasterr,      errorListString,  2002 ) \
+    VALUE_ENTRY(boosteramp,   "dig",   2003 ) \
+    VALUE_ENTRY(cpuload,      "%",     2004 )
 
 
 /***** Enum String definitions *****/
-#define OPMODES      "0=Off, 1=Run"
-#define CANSPEEDS    "0=250k, 1=500k, 2=800k, 3=1M"
-#define CANPERIODS   "0=100ms, 1=10ms"
-#define CAT_TEST     "Testing"
-#define CAT_COMM     "Communication"
+#define OPMODES       "0=Off, 1=Run"
+#define PWMFRQS       "0=17.6kHz, 1=8.8kHz, 2=4.4KHz"
+#define PWMPOLS       "0=ACTHIGH, 1=ACTLOW"
+#define CANSPEEDS     "0=250k, 1=500k, 2=800k, 3=1M"
+#define CANPERIODS    "0=100ms, 1=10ms"
+#define CAT_TEST      "Testing"
+#define CAT_COMM      "Communication"
+#define CAT_INVERTER  "Inverter"
+#define CAT_OPERATION "Operation"
 
 #define VERSTR STRINGIFY(4=VER-name)
 

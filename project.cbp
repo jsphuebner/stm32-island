@@ -2,7 +2,7 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="name_your_project" />
+		<Option title="stm32-island" />
 		<Option makefile_is_custom="1" />
 		<Option pch_mode="2" />
 		<Option compiler="armelfgcc" />
@@ -20,6 +20,9 @@
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="armelfgcc" />
+				<Compiler>
+					<Add directory="include" />
+				</Compiler>
 				<MakeCommands>
 					<Build command="CONTROL=SINE make" />
 					<CompileFile command="$make -f  $file " />
@@ -37,6 +40,7 @@
 		<Unit filename="include/hwdefs.h" />
 		<Unit filename="include/hwinit.h" />
 		<Unit filename="include/param_prj.h" />
+		<Unit filename="include/pwmgeneration.h" />
 		<Unit filename="libopeninv/include/anain.h" />
 		<Unit filename="libopeninv/include/digio.h" />
 		<Unit filename="libopeninv/include/errormessage.h" />
@@ -80,6 +84,7 @@
 		<Unit filename="linker.ld" />
 		<Unit filename="src/hwinit.cpp" />
 		<Unit filename="src/main.cpp" />
+		<Unit filename="src/pwmgeneration.cpp" />
 		<Unit filename="src/terminal_prj.cpp" />
 		<Extensions>
 			<DoxyBlocks>

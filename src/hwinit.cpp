@@ -49,6 +49,7 @@ void clock_setup(void)
    rcc_periph_clock_enable(RCC_GPIOC);
    rcc_periph_clock_enable(RCC_GPIOD);
    rcc_periph_clock_enable(RCC_USART3);
+   rcc_periph_clock_enable(RCC_TIM1); //Main PWM
    rcc_periph_clock_enable(RCC_TIM2); //Scheduler
    rcc_periph_clock_enable(RCC_TIM4); //Overcurrent / AUX PWM
    rcc_periph_clock_enable(RCC_DMA1);  //ADC, Encoder and UART receive
@@ -76,11 +77,7 @@ void write_bootloader_pininit()
    commands.pindef[0].port = GPIOC;
    commands.pindef[0].pin = GPIO13;
    commands.pindef[0].inout = PIN_OUT;
-   commands.pindef[0].level = 1;
-   commands.pindef[1].port = GPIOB;
-   commands.pindef[1].pin = GPIO1 | GPIO2;
-   commands.pindef[1].inout = PIN_OUT;
-   commands.pindef[1].level = 0;
+   commands.pindef[0].level = 0;
 
    crc_reset();
    uint32_t crc = crc_calculate_block(((uint32_t*)&commands), PINDEF_NUMWORDS);
@@ -140,6 +137,12 @@ void usart_setup(void)
 */
 void nvic_setup(void)
 {
+   nvic_enable_irq(NVIC_TIM1_UP_IRQ); //Main PWM
+   nvic_set_priority(NVIC_TIM1_UP_IRQ, 1 << 4); //Set second-highest priority
+
+   nvic_enable_irq(NVIC_TIM1_BRK_IRQ); //Emergency shut down
+   nvic_set_priority(NVIC_TIM1_BRK_IRQ, 0); //Highest priority
+
    nvic_enable_irq(NVIC_TIM2_IRQ); //Scheduler
    nvic_set_priority(NVIC_TIM2_IRQ, 0xe << 4); //second lowest priority
 }
