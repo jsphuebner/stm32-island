@@ -102,6 +102,7 @@ extern void parm_Change(Param::PARAM_NUM paramNum)
    default:
       pwm->SetUdc(Param::Get(Param::udcspnt));
       pwm->ConfigureUdcController(Param::GetInt(Param::udckp), Param::GetInt(Param::udcki));
+      pwm->SetFrequency(Param::Get(Param::frq));
       //Handle general parameter changes here. Add paramNum labels for handling specific parameters
       break;
    }

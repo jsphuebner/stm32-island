@@ -23,7 +23,7 @@
 #include "hwdefs.h"
 #include "sine_core.h"
 
-#define FRQ_TO_ANGLE(frq) FP_TOINT((frq << SineCore::BITS) / (rcc_apb2_frequency / 8192))
+#define FRQ_TO_ANGLE(frq) FP_TOINT(((frq << SineCore::BITS) + (1 << (SineCore::BITS - 1))) / (rcc_apb2_frequency / 8192))
 
 PwmGeneration::PwmGeneration(uint32_t timer)
 {
@@ -101,8 +101,12 @@ void PwmGeneration::Start()
 {
    timer_set_oc_polarity_low(_timer, TIM_OC2N);
    timer_enable_oc_output(_timer, TIM_OC1);
+   timer_enable_oc_output(_timer, TIM_OC1N);
+   //Booster connected to OC2N on Prius Gen 2 board
+   //Do not run phase 2!
    timer_enable_oc_output(_timer, TIM_OC2N);
    timer_enable_oc_output(_timer, TIM_OC3);
+   timer_enable_oc_output(_timer, TIM_OC3N);
    timer_enable_break_main_output(_timer);
    udcController.ResetIntegrator();
    timer_enable_irq(_timer, TIM_DIER_UIE | TIM_DIER_BIE);
@@ -126,6 +130,11 @@ void PwmGeneration::ConfigureUdcController(int kp, int ki)
    udcController.SetGains(kp, ki);
 }
 
+void PwmGeneration::SetFrequency(s32fp frq)
+{
+   phaseIncrement = FRQ_TO_ANGLE(frq);
+}
+
 int PwmGeneration::Run(s32fp udc)
 {
    int dutyCycle = udcController.Run(udc);
@@ -137,7 +146,7 @@ int PwmGeneration::Run(s32fp udc)
    timer_set_oc_value(_timer, TIM_OC1, val1 >> shiftForTimer);
    timer_set_oc_value(_timer, TIM_OC3, val2 >> shiftForTimer);
 
-   angle += FRQ_TO_ANGLE(FP_FROMINT(50));
+   angle += phaseIncrement;
 
    return dutyCycle;
 }

@@ -30,6 +30,7 @@ class PwmGeneration
       void SetPwmDigits(int digits);
       void SetPolarity(bool activeLow, uint32_t* banks, uint16_t* pins, int numBanks);
       void SetUdc(s32fp vtg) { udcController.SetRef(vtg); }
+      void SetFrequency(s32fp frq);
       void Start();
       void ConfigureUdcController(int kp, int ki);
       void Stop();
@@ -40,6 +41,7 @@ class PwmGeneration
    private:
       uint32_t _timer;
       uint16_t angle;
+      uint16_t phaseIncrement;
       int shiftForTimer;
       PiController udcController;
 
