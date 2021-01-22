@@ -39,7 +39,7 @@ LDFLAGS    = -Llibopencm3/lib -T$(LDSCRIPT) -nostartfiles -Wl,--gc-sections,-Map
 OBJSL		  = main.o hwinit.o stm32scheduler.o params.o terminal.o terminal_prj.o \
              my_string.o digio.o sine_core.o my_fp.o printf.o anain.o \
              param_save.o errormessage.o stm32_can.o \
-             picontroller.o pwmgeneration.o
+             picontroller.o pwmgeneration.o terminalcommands.o
 
 OBJS     = $(patsubst %.o,obj/%.o, $(OBJSL))
 vpath %.c src/ libopeninv/src
