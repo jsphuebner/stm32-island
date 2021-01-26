@@ -26,7 +26,7 @@
    3. Display values
  */
 //Next param id (increase when adding new parameter!): 8
-//Next value Id: 2005
+//Next value Id: 2007
 /*              category      name         unit       min     max     default id */
 #define PARAM_LIST \
     PARAM_ENTRY(CAT_INVERTER, pwmfrq,      PWMFRQS,   0,      2,      1,      13  ) \
@@ -48,6 +48,8 @@
     PARAM_ENTRY(CAT_COMM,     canperiod,   CANPERIODS,0,      1,      0,      2   ) \
     VALUE_ENTRY(opmode,       OPMODES, 2000 ) \
     VALUE_ENTRY(udc,          "V",   2003 ) \
+    VALUE_ENTRY(il1,          "A",   2005 ) \
+    VALUE_ENTRY(il2,          "A",   2006 ) \
     VALUE_ENTRY(version,      VERSTR,  2001 ) \
     VALUE_ENTRY(lasterr,      errorListString,  2002 ) \
     VALUE_ENTRY(boosteramp,   "dig",   2003 ) \

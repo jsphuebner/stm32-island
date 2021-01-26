@@ -103,6 +103,7 @@ extern void parm_Change(Param::PARAM_NUM paramNum)
       pwm->SetUdc(Param::Get(Param::udcspnt));
       pwm->ConfigureUdcController(Param::GetInt(Param::udckp), Param::GetInt(Param::udcki));
       pwm->SetFrequency(Param::Get(Param::frq));
+      pwm->SetCurrentDivider(Param::Get(Param::il1gain), Param::Get(Param::il2gain));
       //Handle general parameter changes here. Add paramNum labels for handling specific parameters
       break;
    }
@@ -124,16 +125,19 @@ extern "C" void tim1_brk_isr(void)
 
 extern "C" void tim1_up_isr(void)
 {
+   s32fp il[2];
    s32fp udcgain = Param::Get(Param::udcgain);
    int udcofs = Param::GetInt(Param::udcofs);
    s32fp udc = FP_DIV(FP_FROMINT(AnaIn::udc.Get() - udcofs), udcgain);
 
    /* Clear interrupt pending flag */
    timer_clear_flag(TIM1, TIM_SR_UIF);
-   int dc = pwm->Run(udc);
+   int dc = pwm->Run(udc, il);
 
    Param::SetFlt(Param::udc, udc);
    Param::SetInt(Param::boosteramp, dc);
+   Param::SetFlt(Param::il1, il[0]);
+   Param::SetFlt(Param::il2, il[1]);
 }
 
 extern "C" int main(void)

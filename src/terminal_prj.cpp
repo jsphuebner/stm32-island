@@ -34,8 +34,6 @@
 #include "stm32_can.h"
 #include "terminalcommands.h"
 
-#define NUM_BUF_LEN 15
-
 static void LoadDefaults(char *arg);
 static void Help(char *arg);
 static void PrintSerial(char *arg);

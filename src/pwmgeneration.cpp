@@ -22,6 +22,7 @@
 #include "pwmgeneration.h"
 #include "hwdefs.h"
 #include "sine_core.h"
+#include "anain.h"
 
 #define FRQ_TO_ANGLE(frq) FP_TOINT(((frq << SineCore::BITS) + (1 << (SineCore::BITS - 1))) / (rcc_apb2_frequency / 8192))
 
@@ -109,6 +110,8 @@ void PwmGeneration::Start()
    timer_enable_oc_output(_timer, TIM_OC3N);
    timer_enable_break_main_output(_timer);
    udcController.ResetIntegrator();
+   iofs[0] = AnaIn::il1.Get();
+   iofs[1] = AnaIn::il2.Get();
    timer_enable_irq(_timer, TIM_DIER_UIE | TIM_DIER_BIE);
    timer_enable_counter(_timer);
 }
@@ -135,14 +138,16 @@ void PwmGeneration::SetFrequency(s32fp frq)
    phaseIncrement = FRQ_TO_ANGLE(frq);
 }
 
-int PwmGeneration::Run(s32fp udc)
+int PwmGeneration::Run(s32fp udc, s32fp* il)
 {
    int dutyCycle = udcController.Run(udc);
    int val1 = SineCore::Sine(angle) + 32768;
    int val2 = -SineCore::Sine(angle) + 32768;
 
-   timer_set_oc_value(_timer, TIM_OC2, dutyCycle);
+   il[0] = FP_MUL(AnaIn::il1.Get() - iofs[0], idiv[0]);
+   il[1] = FP_MUL(AnaIn::il2.Get() - iofs[1], idiv[1]);
 
+   timer_set_oc_value(_timer, TIM_OC2, dutyCycle);
    timer_set_oc_value(_timer, TIM_OC1, val1 >> shiftForTimer);
    timer_set_oc_value(_timer, TIM_OC3, val2 >> shiftForTimer);
 

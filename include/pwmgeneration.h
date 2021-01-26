@@ -30,11 +30,12 @@ class PwmGeneration
       void SetPwmDigits(int digits);
       void SetPolarity(bool activeLow, uint32_t* banks, uint16_t* pins, int numBanks);
       void SetUdc(s32fp vtg) { udcController.SetRef(vtg); }
+      void SetCurrentDivider(s32fp d1, s32fp d2) { idiv[0] = d1, idiv[1] = d2; }
       void SetFrequency(s32fp frq);
       void Start();
       void ConfigureUdcController(int kp, int ki);
       void Stop();
-      int Run(s32fp udc);
+      int Run(s32fp udc, s32fp* il);
 
    protected:
 
@@ -42,6 +43,8 @@ class PwmGeneration
       uint32_t _timer;
       uint16_t angle;
       uint16_t phaseIncrement;
+      uint16_t iofs[2];
+      s32fp idiv[2];
       int shiftForTimer;
       PiController udcController;
 
